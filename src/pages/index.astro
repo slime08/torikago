@@ -34,10 +34,15 @@ import Layout from '../layouts/Layout.astro';
     <section class="page-section" data-page="1">
       <div class="page-content">
         <h2 class="section-title">新着情報</h2>
-        <div class="card">
-          <p class="card-description">
-            公式サイトを公開しました。活動情報やガイドラインなどをこちらで発信していきます。
-          </p>
+        <div class="news-list">
+          <div class="news-item">
+            <span class="news-date">2026.01.07</span>
+            <p class="news-text">制作物をGitHubで公開しました（<a href="https://github.com/slime08/OCR_Whisper_LMStudio" target="_blank">OCR_Whisper_LMStudio</a>、<a href="https://github.com/slime08/YT-Live-Chat-Overlay" target="_blank">YT-Live-Chat-Overlay</a>、<a href="https://github.com/slime08/zundamon-automation" target="_blank">ずんだもん自動化</a>）</p>
+          </div>
+          <div class="news-item">
+            <span class="news-date">2026.01.07</span>
+            <p class="news-text">公式サイトを公開しました。</p>
+          </div>
         </div>
       </div>
     </section>
@@ -265,6 +270,43 @@ import Layout from '../layouts/Layout.astro';
     flex-wrap: wrap;
   }
 
+  /* 新着情報 */
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .news-item {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--color-bg-card);
+    border-radius: var(--border-radius-sm);
+    align-items: baseline;
+  }
+
+  .news-date {
+    font-size: 0.875rem;
+    color: var(--color-primary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .news-text {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .news-text a {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
   @media (max-width: 768px) {
     .hero-image {
       width: 200px;
@@ -295,6 +337,11 @@ import Layout from '../layouts/Layout.astro';
     .dot {
       width: 10px;
       height: 10px;
+    }
+
+    .news-item {
+      flex-direction: column;
+      gap: var(--spacing-xs);
     }
   }
 </style>
