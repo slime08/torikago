@@ -14,7 +14,7 @@
   --color-border: #e0e0e0;
 
   /* フォント */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+  --font-family: 'Zen Maru Gothic', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
 
   /* サイズ */
   --max-width: 960px;
