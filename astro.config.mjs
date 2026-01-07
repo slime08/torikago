@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://torikago.net', // デプロイ時に実際のURLに変更
+  site: 'https://torikago.net',
   integrations: [sitemap()],
   build: {
     format: 'directory'
