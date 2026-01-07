@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="404 - ページが見つかりません"
+  description="お探しのページが見つかりませんでした。"
+>
+  <div class="error-page">
+    <p class="error-code">404</p>
+    <h1 class="page-title">ページが見つかりません</h1>
+    <p class="page-description" style="margin-top: var(--spacing-sm);">
+      お探しのページは存在しないか、移動した可能性があります。
+    </p>
+    <div class="contact-links" style="margin-top: var(--spacing-lg);">
+      <a href="/" class="btn">トップページへ戻る</a>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,96 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+}
+
+const { title, description, ogImage = '/midopen-hero.png' } = Astro.props;
+const siteTitle = 'トリカゴ（公式）';
+const fullTitle = title === 'Home' ? siteTitle : `${title} | ${siteTitle}`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- SEO -->
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- OGP -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@TorikagoNoAka" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <a href="/" class="site-logo">トリカゴ</a>
+        <button class="mobile-menu-btn" aria-label="メニューを開く" id="menuBtn">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav" id="nav">
+          <ul class="nav-list">
+            <li><a href="/" class="nav-link">Home</a></li>
+            <li><a href="/about" class="nav-link">About</a></li>
+            <li><a href="/character" class="nav-link">Character</a></li>
+            <li><a href="/works" class="nav-link">Works</a></li>
+            <li><a href="/contact" class="nav-link">Contact</a></li>
+            <li><a href="/guidelines" class="nav-link">Guidelines</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="https://www.youtube.com/@%E3%83%88%E3%83%AA%E3%82%AB%E3%82%B4-oAo" target="_blank" rel="noopener noreferrer">
+            YouTube
+          </a>
+          <a href="https://x.com/TorikagoNoAka" target="_blank" rel="noopener noreferrer">
+            X (Twitter)
+          </a>
+        </div>
+        <p class="footer-copy">&copy; トリカゴ</p>
+      </div>
+    </footer>
+
+    <script>
+      const menuBtn = document.getElementById('menuBtn');
+      const nav = document.getElementById('nav');
+
+      menuBtn?.addEventListener('click', () => {
+        nav?.classList.toggle('is-open');
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>
