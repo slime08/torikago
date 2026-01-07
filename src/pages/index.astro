@@ -6,9 +6,16 @@ import Layout from '../layouts/Layout.astro';
   title="Home"
   description="トリカゴ公式サイト。みどぺんと一緒に、作る・試す・公開する。YouTubeやXで活動中。"
 >
-  <div class="page-container">
+  <div class="page-container" id="pageContainer">
+    <!-- 歩くみどぺん（共通） -->
+    <div class="walking-midopen" id="walkingMidopen">
+      <video muted playsinline id="walkVideo">
+        <source src="/midopen-walk.webm" type="video/webm" />
+      </video>
+    </div>
+
     <!-- ページ1: ヒーロー -->
-    <section class="page-section is-active" id="page-hero">
+    <section class="page-section is-active" data-page="0">
       <div class="page-content">
         <div class="hero">
           <div class="hero-image">
@@ -20,18 +27,11 @@ import Layout from '../layouts/Layout.astro';
           </p>
         </div>
       </div>
-      <div class="page-transition" data-next="page-news">
-        <div class="transition-walker">
-          <video muted playsinline>
-            <source src="/midopen-walk.webm" type="video/webm" />
-          </video>
-        </div>
-        <div class="scroll-hint">↓ スクロール</div>
-      </div>
+      <div class="scroll-hint">↓ スクロールで次へ</div>
     </section>
 
     <!-- ページ2: 新着情報 -->
-    <section class="page-section" id="page-news">
+    <section class="page-section" data-page="1">
       <div class="page-content">
         <h2 class="section-title">新着情報</h2>
         <div class="card">
@@ -40,17 +40,10 @@ import Layout from '../layouts/Layout.astro';
           </p>
         </div>
       </div>
-      <div class="page-transition" data-next="page-contents">
-        <div class="transition-walker">
-          <video muted playsinline>
-            <source src="/midopen-walk.webm" type="video/webm" />
-          </video>
-        </div>
-      </div>
     </section>
 
     <!-- ページ3: コンテンツ -->
-    <section class="page-section" id="page-contents">
+    <section class="page-section" data-page="2">
       <div class="page-content">
         <h2 class="section-title">コンテンツ</h2>
         <div class="card-grid">
@@ -72,17 +65,10 @@ import Layout from '../layouts/Layout.astro';
           </a>
         </div>
       </div>
-      <div class="page-transition" data-next="page-links">
-        <div class="transition-walker">
-          <video muted playsinline>
-            <source src="/midopen-walk.webm" type="video/webm" />
-          </video>
-        </div>
-      </div>
     </section>
 
     <!-- ページ4: リンク -->
-    <section class="page-section" id="page-links">
+    <section class="page-section" data-page="3">
       <div class="page-content">
         <h2 class="section-title">リンク</h2>
         <div class="contact-links">
@@ -94,43 +80,113 @@ import Layout from '../layouts/Layout.astro';
           </a>
         </div>
       </div>
+      <div class="scroll-hint scroll-hint-up">↑ スクロールで戻る</div>
     </section>
+
+    <!-- ページインジケーター -->
+    <div class="page-indicator">
+      <span class="dot is-active" data-goto="0"></span>
+      <span class="dot" data-goto="1"></span>
+      <span class="dot" data-goto="2"></span>
+      <span class="dot" data-goto="3"></span>
+    </div>
   </div>
 </Layout>
 
 <style>
   .page-container {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
     overflow: hidden;
   }
 
   .page-section {
-    min-height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: var(--spacing-lg);
-    position: relative;
     opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    visibility: hidden;
+    transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
   .page-section.is-active {
     opacity: 1;
+    visibility: visible;
     transform: translateX(0);
   }
 
-  .page-section.is-exiting {
+  .page-section.slide-out-left {
     opacity: 0;
     transform: translateX(-100%);
+  }
+
+  .page-section.slide-out-right {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  .page-section.slide-in-left {
+    transform: translateX(-100%);
+  }
+
+  .page-section.slide-in-right {
+    transform: translateX(100%);
   }
 
   .page-content {
     max-width: var(--max-width);
     width: 100%;
     text-align: center;
+  }
+
+  /* 歩くみどぺん */
+  .walking-midopen {
+    position: fixed;
+    bottom: 50px;
+    left: -300px;
+    height: 150px;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .walking-midopen.is-visible {
+    opacity: 1;
+  }
+
+  .walking-midopen.walk-right {
+    animation: walkRight 4s ease-in-out forwards;
+  }
+
+  .walking-midopen.walk-left {
+    animation: walkLeft 4s ease-in-out forwards;
+    transform: scaleX(-1);
+  }
+
+  .walking-midopen video {
+    height: 150px;
+    width: auto;
+  }
+
+  @keyframes walkRight {
+    0% { left: -300px; }
+    100% { left: calc(100% + 100px); }
+  }
+
+  @keyframes walkLeft {
+    0% { left: calc(100% + 100px); }
+    100% { left: -300px; }
   }
 
   /* ヒーロー */
@@ -166,47 +222,10 @@ import Layout from '../layouts/Layout.astro';
     color: var(--color-text-muted);
   }
 
-  /* トランジション領域 */
-  .page-transition {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 150px;
-    overflow: hidden;
-  }
-
-  .transition-walker {
-    position: absolute;
-    left: -300px;
-    bottom: 20px;
-    height: 130px;
-    opacity: 0;
-    z-index: 10;
-  }
-
-  .transition-walker.is-walking {
-    opacity: 1;
-    animation: walkAcross 5s ease-in-out forwards;
-  }
-
-  .transition-walker video {
-    height: 130px;
-    width: auto;
-  }
-
-  @keyframes walkAcross {
-    0% {
-      left: -300px;
-    }
-    100% {
-      left: calc(100% + 100px);
-    }
-  }
-
+  /* スクロールヒント */
   .scroll-hint {
     position: absolute;
-    bottom: 30px;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--color-text-muted);
@@ -214,9 +233,47 @@ import Layout from '../layouts/Layout.astro';
     animation: bounce 2s infinite;
   }
 
+  .scroll-hint-up {
+    animation: bounceUp 2s infinite;
+  }
+
   @keyframes bounce {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  @keyframes bounceUp {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+
+  /* ページインジケーター */
+  .page-indicator {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 50;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-border);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .dot:hover {
+    transform: scale(1.2);
+  }
+
+  .dot.is-active {
+    background: var(--color-primary);
   }
 
   /* カード類 */
@@ -248,83 +305,148 @@ import Layout from '../layouts/Layout.astro';
       font-size: 1rem;
     }
 
-    .transition-walker {
-      height: 90px;
+    .walking-midopen {
+      height: 100px;
+      bottom: 30px;
     }
 
-    .transition-walker video {
-      height: 90px;
+    .walking-midopen video {
+      height: 100px;
     }
 
-    .page-section {
-      min-height: auto;
-      padding: var(--spacing-xl) var(--spacing-sm);
+    .page-indicator {
+      right: 10px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
     }
   }
 </style>
 
 <script is:inline>
   document.addEventListener('DOMContentLoaded', function() {
+    var container = document.getElementById('pageContainer');
     var sections = document.querySelectorAll('.page-section');
-    var transitions = document.querySelectorAll('.page-transition');
+    var dots = document.querySelectorAll('.dot');
+    var walker = document.getElementById('walkingMidopen');
+    var video = document.getElementById('walkVideo');
+
+    var currentPage = 0;
+    var totalPages = sections.length;
     var isAnimating = false;
+    var scrollAccumulator = 0;
+    var scrollThreshold = 100;
 
-    // 最初のセクション以外を非表示に
-    sections.forEach(function(section, index) {
-      if (index > 0) {
-        section.style.display = 'none';
+    function goToPage(targetPage, direction) {
+      if (isAnimating || targetPage === currentPage || targetPage < 0 || targetPage >= totalPages) {
+        return;
       }
-    });
 
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting && !isAnimating) {
-          var transition = entry.target;
-          var walker = transition.querySelector('.transition-walker');
-          var video = walker ? walker.querySelector('video') : null;
-          var nextSectionId = transition.getAttribute('data-next');
-          var nextSection = nextSectionId ? document.getElementById(nextSectionId) : null;
-          var currentSection = transition.closest('.page-section');
+      isAnimating = true;
+      var currentSection = sections[currentPage];
+      var targetSection = sections[targetPage];
 
-          if (walker && !walker.classList.contains('is-walking') && nextSection) {
-            isAnimating = true;
+      // みどぺんを表示して歩かせる
+      walker.classList.remove('walk-right', 'walk-left');
+      walker.classList.add('is-visible');
 
-            // スクロールヒントを非表示
-            var hint = transition.querySelector('.scroll-hint');
-            if (hint) hint.style.display = 'none';
+      if (direction === 'next') {
+        walker.style.transform = 'scaleX(1)';
+        walker.classList.add('walk-right');
+        currentSection.classList.add('slide-out-left');
+        targetSection.classList.add('slide-in-right');
+      } else {
+        walker.style.transform = 'scaleX(-1)';
+        walker.classList.add('walk-left');
+        currentSection.classList.add('slide-out-right');
+        targetSection.classList.add('slide-in-left');
+      }
 
-            // みどぺんが歩き始める
-            walker.classList.add('is-walking');
-            if (video) video.play();
+      video.currentTime = 0;
+      video.play();
 
-            // 2.5秒後（みどぺんが中央を通過する頃）に次のセクションを表示開始
-            setTimeout(function() {
-              nextSection.style.display = 'flex';
-              // 少し待ってからアニメーション開始
-              requestAnimationFrame(function() {
-                currentSection.classList.add('is-exiting');
-                currentSection.classList.remove('is-active');
-                nextSection.classList.add('is-active');
-              });
-            }, 2500);
+      // 2秒後にページ切り替え開始
+      setTimeout(function() {
+        targetSection.classList.remove('slide-in-left', 'slide-in-right');
+        targetSection.classList.add('is-active');
+        currentSection.classList.remove('is-active');
 
-            // アニメーション完了後
-            setTimeout(function() {
-              currentSection.style.display = 'none';
-              currentSection.classList.remove('is-exiting');
-              isAnimating = false;
-            }, 5500);
+        // ドット更新
+        dots[currentPage].classList.remove('is-active');
+        dots[targetPage].classList.add('is-active');
 
-            observer.unobserve(transition);
-          }
-        }
+        currentPage = targetPage;
+      }, 2000);
+
+      // 4秒後にアニメーション完了
+      setTimeout(function() {
+        currentSection.classList.remove('slide-out-left', 'slide-out-right');
+        walker.classList.remove('is-visible', 'walk-right', 'walk-left');
+        isAnimating = false;
+        scrollAccumulator = 0;
+      }, 4000);
+    }
+
+    // ホイールイベント
+    container.addEventListener('wheel', function(e) {
+      e.preventDefault();
+
+      if (isAnimating) return;
+
+      scrollAccumulator += e.deltaY;
+
+      if (scrollAccumulator > scrollThreshold) {
+        // 下スクロール → 次のページ
+        goToPage(currentPage + 1, 'next');
+      } else if (scrollAccumulator < -scrollThreshold) {
+        // 上スクロール → 前のページ
+        goToPage(currentPage - 1, 'prev');
+      }
+    }, { passive: false });
+
+    // タッチイベント
+    var touchStartY = 0;
+    container.addEventListener('touchstart', function(e) {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    container.addEventListener('touchend', function(e) {
+      if (isAnimating) return;
+
+      var touchEndY = e.changedTouches[0].clientY;
+      var diff = touchStartY - touchEndY;
+
+      if (diff > 50) {
+        // 上にスワイプ → 次のページ
+        goToPage(currentPage + 1, 'next');
+      } else if (diff < -50) {
+        // 下にスワイプ → 前のページ
+        goToPage(currentPage - 1, 'prev');
+      }
+    }, { passive: true });
+
+    // ドットクリック
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var target = parseInt(this.getAttribute('data-goto'));
+        var direction = target > currentPage ? 'next' : 'prev';
+        goToPage(target, direction);
       });
-    }, {
-      threshold: 0.8
     });
 
-    transitions.forEach(function(transition) {
-      observer.observe(transition);
+    // キーボード操作
+    document.addEventListener('keydown', function(e) {
+      if (isAnimating) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        goToPage(currentPage + 1, 'next');
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        goToPage(currentPage - 1, 'prev');
+      }
     });
   });
 </script>
