@@ -16,6 +16,13 @@ import Layout from '../layouts/Layout.astro';
     </p>
   </section>
 
+  <!-- セクション区切り：みどぺんが横切る -->
+  <div class="section-divider">
+    <video class="divider-video" autoplay loop muted playsinline>
+      <source src="/midopen-walk.webm" type="video/webm" />
+    </video>
+  </div>
+
   <section class="section">
     <h2 class="section-title">新着情報</h2>
     <div class="card">
@@ -24,6 +31,13 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
   </section>
+
+  <!-- セクション区切り -->
+  <div class="section-divider">
+    <video class="divider-video" autoplay loop muted playsinline>
+      <source src="/midopen-walk.webm" type="video/webm" />
+    </video>
+  </div>
 
   <section class="section">
     <h2 class="section-title">コンテンツ</h2>
@@ -47,6 +61,13 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- セクション区切り -->
+  <div class="section-divider">
+    <video class="divider-video" autoplay loop muted playsinline>
+      <source src="/midopen-walk.webm" type="video/webm" />
+    </video>
+  </div>
+
   <section class="section">
     <h2 class="section-title">リンク</h2>
     <div class="contact-links">
@@ -59,3 +80,39 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 </Layout>
+
+<style>
+  .section-divider {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+    margin: var(--spacing-lg) 0;
+  }
+
+  .divider-video {
+    position: absolute;
+    height: 100px;
+    width: auto;
+    bottom: 0;
+    animation: walk 8s linear infinite;
+  }
+
+  @keyframes walk {
+    0% {
+      left: -200px;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .section-divider {
+      height: 70px;
+    }
+    .divider-video {
+      height: 70px;
+    }
+  }
+</style>
