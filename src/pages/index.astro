@@ -15,7 +15,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
 
     <!-- ページ1: ヒーロー -->
-    <section class="page-section is-active" data-page="0">
+    <section class="page-section is-current" data-page="0">
       <div class="page-content">
         <div class="hero">
           <div class="hero-image">
@@ -101,6 +101,7 @@ import Layout from '../layouts/Layout.astro';
     width: 100%;
     height: 100vh;
     overflow: hidden;
+    background: var(--color-bg);
   }
 
   .page-section {
@@ -114,33 +115,26 @@ import Layout from '../layouts/Layout.astro';
     justify-content: center;
     align-items: center;
     padding: var(--spacing-lg);
-    opacity: 0;
+    background: var(--color-bg);
+    clip-path: inset(0 100% 0 0);
     visibility: hidden;
-    transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  .page-section.is-active {
-    opacity: 1;
+  .page-section.is-current {
+    clip-path: inset(0 0 0 0);
     visibility: visible;
-    transform: translateX(0);
+    z-index: 1;
   }
 
-  .page-section.slide-out-left {
-    opacity: 0;
-    transform: translateX(-100%);
+  .page-section.is-next {
+    visibility: visible;
+    z-index: 2;
   }
 
-  .page-section.slide-out-right {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-
-  .page-section.slide-in-left {
-    transform: translateX(-100%);
-  }
-
-  .page-section.slide-in-right {
-    transform: translateX(100%);
+  .page-section.is-prev {
+    clip-path: inset(0 0 0 0);
+    visibility: visible;
+    z-index: 1;
   }
 
   .page-content {
@@ -153,40 +147,20 @@ import Layout from '../layouts/Layout.astro';
   .walking-midopen {
     position: fixed;
     bottom: 50px;
-    left: -300px;
     height: 150px;
     z-index: 100;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.2s;
   }
 
   .walking-midopen.is-visible {
     opacity: 1;
   }
 
-  .walking-midopen.walk-right {
-    animation: walkRight 4s ease-in-out forwards;
-  }
-
-  .walking-midopen.walk-left {
-    animation: walkLeft 4s ease-in-out forwards;
-    transform: scaleX(-1);
-  }
-
   .walking-midopen video {
     height: 150px;
     width: auto;
-  }
-
-  @keyframes walkRight {
-    0% { left: -300px; }
-    100% { left: calc(100% + 100px); }
-  }
-
-  @keyframes walkLeft {
-    0% { left: calc(100% + 100px); }
-    100% { left: -300px; }
   }
 
   /* ヒーロー */
@@ -256,7 +230,7 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 50;
+    z-index: 150;
   }
 
   .dot {
@@ -338,6 +312,11 @@ import Layout from '../layouts/Layout.astro';
     var isAnimating = false;
     var scrollAccumulator = 0;
     var scrollThreshold = 100;
+    var animationDuration = 4000;
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
 
     function goToPage(targetPage, direction) {
       if (isAnimating || targetPage === currentPage || targetPage < 0 || targetPage >= totalPages) {
@@ -347,61 +326,91 @@ import Layout from '../layouts/Layout.astro';
       isAnimating = true;
       var currentSection = sections[currentPage];
       var targetSection = sections[targetPage];
+      var startTime = null;
+      var walkerWidth = 200;
+      var screenWidth = window.innerWidth;
 
-      // みどぺんを表示して歩かせる
-      walker.classList.remove('walk-right', 'walk-left');
-      walker.classList.add('is-visible');
-
+      // 次のセクションを準備
       if (direction === 'next') {
-        walker.style.transform = 'scaleX(1)';
-        walker.classList.add('walk-right');
-        currentSection.classList.add('slide-out-left');
-        targetSection.classList.add('slide-in-right');
+        targetSection.classList.add('is-next');
+        targetSection.style.clipPath = 'inset(0 100% 0 0)';
       } else {
-        walker.style.transform = 'scaleX(-1)';
-        walker.classList.add('walk-left');
-        currentSection.classList.add('slide-out-right');
-        targetSection.classList.add('slide-in-left');
+        targetSection.classList.add('is-prev');
+        currentSection.style.zIndex = '2';
+        targetSection.style.zIndex = '1';
       }
 
+      // みどぺんを表示
+      walker.classList.add('is-visible');
+      walker.style.transform = direction === 'next' ? 'scaleX(1)' : 'scaleX(-1)';
       video.currentTime = 0;
       video.play();
 
-      // 2秒後にページ切り替え開始
-      setTimeout(function() {
-        targetSection.classList.remove('slide-in-left', 'slide-in-right');
-        targetSection.classList.add('is-active');
-        currentSection.classList.remove('is-active');
+      function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var elapsed = timestamp - startTime;
+        var progress = Math.min(elapsed / animationDuration, 1);
+        var easedProgress = easeInOutCubic(progress);
 
-        // ドット更新
-        dots[currentPage].classList.remove('is-active');
-        dots[targetPage].classList.add('is-active');
+        // みどぺんの位置を計算
+        var walkerX;
+        if (direction === 'next') {
+          walkerX = -walkerWidth + (screenWidth + walkerWidth * 2) * easedProgress;
+        } else {
+          walkerX = screenWidth - (screenWidth + walkerWidth * 2) * easedProgress;
+        }
+        walker.style.left = walkerX + 'px';
 
-        currentPage = targetPage;
-      }, 2000);
+        // ワイプ位置を計算（みどぺんの中心に合わせる）
+        var wipePosition = walkerX + walkerWidth / 2;
+        var wipePercent = Math.max(0, Math.min(100, (wipePosition / screenWidth) * 100));
 
-      // 4秒後にアニメーション完了
-      setTimeout(function() {
-        currentSection.classList.remove('slide-out-left', 'slide-out-right');
-        walker.classList.remove('is-visible', 'walk-right', 'walk-left');
-        isAnimating = false;
-        scrollAccumulator = 0;
-      }, 4000);
+        // クリップパスを更新
+        if (direction === 'next') {
+          // 次のセクションが左から右に広がる
+          targetSection.style.clipPath = 'inset(0 ' + (100 - wipePercent) + '% 0 0)';
+        } else {
+          // 現在のセクションが右から左に消える
+          currentSection.style.clipPath = 'inset(0 0 0 ' + (100 - wipePercent) + '%)';
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // アニメーション完了
+          currentSection.classList.remove('is-current', 'is-prev');
+          currentSection.style.clipPath = '';
+          currentSection.style.zIndex = '';
+
+          targetSection.classList.remove('is-next');
+          targetSection.classList.add('is-current');
+          targetSection.style.clipPath = 'inset(0 0 0 0)';
+          targetSection.style.zIndex = '';
+
+          walker.classList.remove('is-visible');
+
+          dots[currentPage].classList.remove('is-active');
+          dots[targetPage].classList.add('is-active');
+
+          currentPage = targetPage;
+          isAnimating = false;
+          scrollAccumulator = 0;
+        }
+      }
+
+      requestAnimationFrame(animate);
     }
 
     // ホイールイベント
     container.addEventListener('wheel', function(e) {
       e.preventDefault();
-
       if (isAnimating) return;
 
       scrollAccumulator += e.deltaY;
 
       if (scrollAccumulator > scrollThreshold) {
-        // 下スクロール → 次のページ
         goToPage(currentPage + 1, 'next');
       } else if (scrollAccumulator < -scrollThreshold) {
-        // 上スクロール → 前のページ
         goToPage(currentPage - 1, 'prev');
       }
     }, { passive: false });
@@ -419,10 +428,8 @@ import Layout from '../layouts/Layout.astro';
       var diff = touchStartY - touchEndY;
 
       if (diff > 50) {
-        // 上にスワイプ → 次のページ
         goToPage(currentPage + 1, 'next');
       } else if (diff < -50) {
-        // 下にスワイプ → 前のページ
         goToPage(currentPage - 1, 'prev');
       }
     }, { passive: true });
