@@ -30,8 +30,44 @@ import Layout from '../layouts/Layout.astro';
       <div class="scroll-hint">↓ スクロールで次へ</div>
     </section>
 
-    <!-- ページ2: 新着情報 -->
+    <!-- ページ2: Works -->
     <section class="page-section" data-page="1">
+      <div class="page-content">
+        <h2 class="section-title">Works</h2>
+        <div class="works-grid">
+          <a href="https://postnavi-clean.vercel.app/" class="work-card" target="_blank" rel="noopener noreferrer">
+            <div class="work-header">
+              <h3 class="work-title">PostNavi</h3>
+              <span class="work-badge">React Native</span>
+            </div>
+            <p class="work-description">
+              ポスティング業務向けの記録・ルート追跡アプリ。地図上で現在地を確認しながら配布数を記録。
+            </p>
+            <div class="work-tech">
+              <span>Supabase</span>
+              <span>Mapbox</span>
+            </div>
+          </a>
+          <a href="https://visit-booking-mvp.vercel.app/" class="work-card" target="_blank" rel="noopener noreferrer">
+            <div class="work-header">
+              <h3 class="work-title">訪問予約管理</h3>
+              <span class="work-badge">Next.js</span>
+            </div>
+            <p class="work-description">
+              訪問サービス事業者向け予約管理システム。カレンダー表示と空き枠共有で予約をスムーズに。
+            </p>
+            <div class="work-tech">
+              <span>Supabase</span>
+              <span>TypeScript</span>
+            </div>
+          </a>
+        </div>
+        <a href="/works" class="works-more">すべての制作物を見る →</a>
+      </div>
+    </section>
+
+    <!-- ページ3: 新着情報 -->
+    <section class="page-section" data-page="2">
       <div class="page-content">
         <h2 class="section-title">新着情報</h2>
         <div class="news-list">
@@ -47,8 +83,8 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </section>
 
-    <!-- ページ3: コンテンツ -->
-    <section class="page-section" data-page="2">
+    <!-- ページ4: コンテンツ -->
+    <section class="page-section" data-page="3">
       <div class="page-content">
         <h2 class="section-title">コンテンツ</h2>
         <div class="card-grid">
@@ -72,8 +108,8 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </section>
 
-    <!-- ページ4: リンク -->
-    <section class="page-section" data-page="3">
+    <!-- ページ5: リンク -->
+    <section class="page-section" data-page="4">
       <div class="page-content">
         <h2 class="section-title">リンク</h2>
         <div class="contact-links">
@@ -94,6 +130,7 @@ import Layout from '../layouts/Layout.astro';
       <span class="dot" data-goto="1"></span>
       <span class="dot" data-goto="2"></span>
       <span class="dot" data-goto="3"></span>
+      <span class="dot" data-goto="4"></span>
     </div>
   </div>
 </Layout>
@@ -182,13 +219,16 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--color-bg-card);
+    border-radius: 24px;
+    padding: var(--spacing-md);
+    box-shadow: 0 8px 32px rgba(45, 106, 79, 0.15);
   }
 
   .hero-image img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 8px 24px rgba(45, 106, 79, 0.2));
   }
 
   .hero-title {
@@ -342,6 +382,100 @@ import Layout from '../layouts/Layout.astro';
     .news-item {
       flex-direction: column;
       gap: var(--spacing-xs);
+    }
+  }
+
+  /* Works セクション */
+  .works-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    text-align: left;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .work-card {
+    background: var(--color-bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .work-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .work-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .work-title {
+    font-size: 1.1rem;
+    color: var(--color-primary-dark);
+    margin: 0;
+  }
+
+  .work-badge {
+    font-size: 0.7rem;
+    background: var(--color-accent);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .work-description {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin: 0 0 var(--spacing-sm) 0;
+    flex-grow: 1;
+  }
+
+  .work-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .work-tech span {
+    font-size: 0.7rem;
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+  }
+
+  .works-more {
+    display: inline-block;
+    margin-top: var(--spacing-md);
+    color: var(--color-primary);
+    font-size: 0.9375rem;
+    text-decoration: none;
+  }
+
+  .works-more:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .works-grid {
+      grid-template-columns: 1fr;
+      max-width: 400px;
+    }
+
+    .work-card {
+      padding: var(--spacing-sm);
     }
   }
 </style>
