@@ -11,7 +11,10 @@
   #wrap { position:relative; width:min(480px,96vw); }
   canvas { width:100%; height:auto; display:block; background:#9ea3ab;
            border-radius:6px; image-rendering:pixelated; }
-  #stage-label { font-size:14px; color:#b9bcc2; margin:0 0 8px; min-height:18px; }
+  #stage-label { font-size:14px; color:#b9bcc2; margin:0 0 2px; min-height:18px; }
+  #moves-label { font-size:15px; color:#e8e9eb; margin:0 0 8px; min-height:19px; font-weight:bold; }
+  #clear-rank { font-size:34px; font-weight:bold; }
+  #clear-moves { font-size:15px; font-weight:normal; color:#e8e9eb; }
   #clear { display:none; position:absolute; top:38%; left:50%; transform:translate(-50%,-50%);
            background:rgba(20,24,20,0.88); color:#7be495; font-size:22px; font-weight:bold;
            padding:16px 22px; border-radius:10px; text-align:center; white-space:nowrap; z-index:3; }
@@ -45,6 +48,7 @@
 <body>
 <h1>フォークリフト倉庫パズル</h1>
 <p id="stage-label"></p>
+<p id="moves-label"></p>
 <div id="wrap">
   <canvas id="game" width="480" height="432"></canvas>
   <div id="title-screen">
@@ -54,7 +58,7 @@
     <button id="btn-start">▶ スタート</button>
     <div id="stage-btns"></div>
   </div>
-  <div id="clear"><span id="clear-title">クリア！</span><br><span id="clear-sub"></span><br><button id="btn-next">次のステージへ →</button></div>
+  <div id="clear"><span id="clear-rank"></span><br><span id="clear-title">クリア！</span><br><span id="clear-moves"></span><br><span id="clear-sub"></span><br><button id="btn-next">次のステージへ →</button></div>
 </div>
 <div class="hint">
   方向キー / WASD： 移動・転回　F / クリック： 積む・降ろす　Z： アンドゥ　R： リセット<br>
@@ -81,6 +85,8 @@
  * - F/クリック: フォーク先の箱を積む / 積んでいればフォーク先に降ろす
  * - 緑ゾーンに箱を全部並べたらクリア。Z: アンドゥ / R: リセット
  * ステージは全5面 (ソルバーで解けることを検証済み、最短手数順)
+ * 手数 = 有効な操作 (移動・転回・積み降ろし) の回数。ソルバーの数え方と同一。
+ * クリア時ランク: S = 最短以内 / A = 最短×1.3 以内 / B = クリア
  */
 const STAGE_MAPS = [
   [ // ステージ1: 箱3個 (最短34手)
@@ -139,6 +145,10 @@ const STAGE_MAPS = [
     "##########",
   ],
 ];
+// 各ステージの最短手数 (ステージ1〜4はC版ソルバー tools/solve_pdb.c で
+// 厳密に確定。ステージ5は探索空間が大きすぎて証明は未完だが、確認済みの
+// 最速は100手で、2.4億状態の探索でもそれ未満の解は見つかっていない)
+const STAGE_BEST = [34, 46, 52, 68, 100];
 const MAP = STAGE_MAPS[2]; // 従来の単体マップ参照用 (ステージ3と同一)
 const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // 上右下左
 
@@ -246,6 +256,7 @@ function createGame(rows) {
     get facing() { return facing; },
     get carrying() { return carrying; },
     get cleared() { return cleared; },
+    get moves() { return history.length; },
     get boxes() { return boxes; },
     get zone() { return zone; },
     get walls() { return walls; },
@@ -253,7 +264,13 @@ function createGame(rows) {
   };
 }
 
-if (typeof module !== "undefined") module.exports = { createGame, MAP, STAGE_MAPS, DIRS };
+function rankFor(moves, best) {
+  if (moves <= best) return "S";
+  if (moves <= Math.floor(best * 1.3)) return "A";
+  return "B";
+}
+
+if (typeof module !== "undefined") module.exports = { createGame, MAP, STAGE_MAPS, STAGE_BEST, DIRS, rankFor };
 </script>
 <script>"use strict";
 /* フォークリフト倉庫パズル - ブラウザ描画 (Godot版の StackedSprite 描画を再現)
@@ -299,6 +316,12 @@ let screen = "title"; // "title" | "play"
 let stageIdx = 0;
 let game = createGame(STAGE_MAPS[0]);
 let clearShown = false;
+let lastMovesShown = -1;
+
+function updateMovesLabel() {
+  document.getElementById("moves-label").textContent =
+    "手数 " + game.moves + "　最短 " + STAGE_BEST[stageIdx] + "手";
+}
 
 function cellCenter(c) { return [c[0] * CELL + CELL / 2, c[1] * CELL + CELL / 2]; }
 let visPos = cellCenter(game.body);
@@ -320,6 +343,8 @@ function startStage(i) {
     "箱" + game.boxes.length + "個を緑のゾーンに全部並べたらクリア。車体＋フォークの2マスものなので、旋回には角の空きも必要。";
   document.getElementById("title-screen").style.display = "none";
   document.getElementById("clear").style.display = "none";
+  lastMovesShown = -1;
+  updateMovesLabel();
   screen = "play";
 }
 
@@ -331,6 +356,13 @@ function goTitle() {
 
 function showClear() {
   const last = stageIdx >= STAGE_MAPS.length - 1;
+  const best = STAGE_BEST[stageIdx];
+  const rank = rankFor(game.moves, best);
+  const rankEl = document.getElementById("clear-rank");
+  rankEl.textContent = rank + "ランク";
+  rankEl.style.color = rank === "S" ? "#ffd94d" : rank === "A" ? "#a8e6b0" : "#e0a878";
+  document.getElementById("clear-moves").textContent =
+    game.moves + "手でクリア（最短 " + best + "手）";
   document.getElementById("clear-title").textContent =
     last ? "全ステージクリア！" : "ステージクリア！";
   document.getElementById("clear-sub").textContent =
@@ -420,6 +452,10 @@ function loop(t) {
   }
   drawStack(liftImgs, visPos[0], visPos[1], visDeg, 6, liftImgs.length - 6, 0);
 
+  if (screen === "play" && game.moves !== lastMovesShown) {
+    lastMovesShown = game.moves;
+    updateMovesLabel();
+  }
   if (screen === "play" && game.cleared && !clearShown) {
     clearShown = true;
     showClear();
