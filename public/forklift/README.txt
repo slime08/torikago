@@ -1,10 +1,14 @@
 フォークリフト倉庫パズル Web版 (単一HTMLファイル)
 
-【torikago.net (Astro) への載せ方】
+タイトル画面＋全5ステージ版。
+ステージは全てソルバーで「解ける」ことを検証済み
+(最短/確認済みの手数: ステージ1=34手, 2=46手, 3=52手, 4=68手, 5=100手の解を確認)。
+
+
 1. この forklift フォルダごと、Astro プロジェクトの public/ の中に入れる
-   (public/forklift/index.html になるように)
+(public/forklift/index.html になるように)
 2. ビルド＆デプロイすると https://torikago.net/forklift/ で遊べる
 3. サイト内のページからリンクを張る場合は <a href="/forklift/"> のように書く
 
-ファイルは index.html 1つだけ (画像も全部埋め込み済み、約59KB)。
+ファイルは index.html 1つだけ (画像も全部埋め込み済み、約66KB)。
 サーバー側の設定 (ヘッダ等) は不要。
