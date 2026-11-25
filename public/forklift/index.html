@@ -149,9 +149,9 @@ const STAGE_MAPS = [
   ],
 ];
 // 各ステージの最短手数 (ステージ1〜4はC版ソルバー tools/solve_pdb.c で
-// 厳密に確定。ステージ5は探索空間が大きすぎて証明は未完だが、確認済みの
-// 最速は100手で、2.4億状態の探索でもそれ未満の解は見つかっていない)
-const STAGE_BEST = [34, 46, 52, 68, 100];
+// 厳密に確定。ステージ5は証明未完: ソルバーの100手をプレイヤー (ユーザーの
+// 姪) が94手に更新し、さらに重み付き探索 tools/solve_find.c が75手を見つけた)
+const STAGE_BEST = [34, 46, 52, 68, 75];
 const MAP = STAGE_MAPS[2]; // 従来の単体マップ参照用 (ステージ3と同一)
 const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // 上右下左
 
@@ -212,6 +212,8 @@ function createGame(rows) {
     body = nb;
   }
   function tryTurn(fi) {
+    // 仕様 (2026-11-25 確定): 箱を置いた直後でも旋回できる (フォークは
+    // 箱の下から抜ける扱い)。判定は新しいフォーク先と角のマスのみ。
     const nf = [body[0] + DIRS[fi][0], body[1] + DIRS[fi][1]];
     if (walls.has(key(nf)) || hasBox(nf)) return;
     const diag = [body[0] + DIRS[facing][0] + DIRS[fi][0],
