@@ -34,6 +34,8 @@
   #stage-btns { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
   #stage-btns button { background:#3a3d44; color:#e8e9eb; border:1px solid #55585f;
            border-radius:8px; font-size:13px; padding:8px 12px; cursor:pointer; }
+  #stage-btns .badge { font-weight:bold; }
+  #rank-progress { min-height:16px; margin:6px 0 0; }
   .hint { font-size:13px; color:#b9bcc2; margin-top:10px; text-align:center; line-height:1.7; }
   .pad { margin-top:12px; display:grid; grid-template-columns:repeat(3,56px);
          gap:6px; justify-content:center; }
@@ -57,6 +59,7 @@
     <p class="game-sub">段ボールを運んで倉庫を片付けるパズル（全5ステージ）</p>
     <button id="btn-start">▶ スタート</button>
     <div id="stage-btns"></div>
+    <p id="rank-progress" class="game-sub"></p>
   </div>
   <div id="clear"><span id="clear-rank"></span><br><span id="clear-title">クリア！</span><br><span id="clear-moves"></span><br><span id="clear-sub"></span><br><button id="btn-next">次のステージへ →</button></div>
 </div>
@@ -301,16 +304,49 @@ SPRITES.box.forEach(u => { const i = new Image(); i.onload = onLoad; i.src = u; 
     box.appendChild(img);
   });
 })();
+// 自己ベストランク (ブラウザに保存され、タイトル画面に表示される)
+const RANK_ORDER = { S: 3, A: 2, B: 1 };
+function rankColor(r) { return r === "S" ? "#ffd94d" : r === "A" ? "#a8e6b0" : "#e0a878"; }
+let bestRanks = [];
+try { bestRanks = JSON.parse(localStorage.getItem("forklift_best_ranks") || "[]"); } catch (e) { bestRanks = []; }
+if (!Array.isArray(bestRanks)) bestRanks = [];
+function saveRank(i, rank) {
+  if ((RANK_ORDER[rank] || 0) > (RANK_ORDER[bestRanks[i]] || 0)) {
+    bestRanks[i] = rank;
+    try { localStorage.setItem("forklift_best_ranks", JSON.stringify(bestRanks)); } catch (e) {}
+  }
+  refreshProgress();
+}
+
 // ステージ選択ボタン
+const stageBtnBadges = [];
 (function buildStageButtons() {
   const box = document.getElementById("stage-btns");
   STAGE_MAPS.forEach((_, i) => {
     const b = document.createElement("button");
-    b.textContent = "ステージ" + (i + 1);
+    b.appendChild(document.createTextNode("ステージ" + (i + 1)));
+    const s = document.createElement("span");
+    s.className = "badge";
+    b.appendChild(s);
+    stageBtnBadges.push(s);
     b.addEventListener("click", () => startStage(i));
     box.appendChild(b);
   });
 })();
+
+function refreshProgress() {
+  stageBtnBadges.forEach((s, i) => {
+    const r = bestRanks[i];
+    s.textContent = r ? " ★" + r : "";
+    s.style.color = r ? rankColor(r) : "";
+  });
+  const clearedCount = bestRanks.filter(Boolean).length;
+  const sCount = bestRanks.filter(r => r === "S").length;
+  document.getElementById("rank-progress").textContent = clearedCount
+    ? "クリア済み " + clearedCount + " / " + STAGE_MAPS.length + "　Sランク " + sCount + " / " + STAGE_MAPS.length
+    : "";
+}
+refreshProgress();
 
 let screen = "title"; // "title" | "play"
 let stageIdx = 0;
@@ -358,9 +394,10 @@ function showClear() {
   const last = stageIdx >= STAGE_MAPS.length - 1;
   const best = STAGE_BEST[stageIdx];
   const rank = rankFor(game.moves, best);
+  saveRank(stageIdx, rank);
   const rankEl = document.getElementById("clear-rank");
   rankEl.textContent = rank + "ランク";
-  rankEl.style.color = rank === "S" ? "#ffd94d" : rank === "A" ? "#a8e6b0" : "#e0a878";
+  rankEl.style.color = rankColor(rank);
   document.getElementById("clear-moves").textContent =
     game.moves + "手でクリア（最短 " + best + "手）";
   document.getElementById("clear-title").textContent =
