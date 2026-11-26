@@ -29,12 +29,11 @@
            font-size:15px; padding:9px 18px; cursor:pointer; }
   #title-screen { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column;
            align-items:center; justify-content:center; gap:6px; text-align:center;
+           overflow-y:auto; box-sizing:border-box;
            background:rgba(24,26,31,0.93); border-radius:6px; padding:12px; }
   #title-screen .game-title { font-size:27px; font-weight:bold; margin:0; color:#ffd94d; }
   #title-screen .game-sub { font-size:13px; color:#b9bcc2; margin:0 0 2px; }
-  #title-visual { position:relative; width:96px; height:168px; }
-  #title-visual img { position:absolute; left:50%; transform:translateX(-50%);
-           width:96px; image-rendering:pixelated; }
+  #title-visual { width:120px; height:120px; image-rendering:pixelated; }
   #btn-start { background:#e8a812; color:#24262b; border:none; border-radius:8px;
            font-size:17px; font-weight:bold; padding:11px 30px; cursor:pointer; }
   #stage-btns { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
@@ -68,7 +67,7 @@
   <canvas id="game" width="480" height="432"></canvas>
   <div id="title-screen">
     <p class="game-title">フォークリフト<br>倉庫パズル</p>
-    <div id="title-visual"></div>
+    <canvas id="title-visual" width="160" height="160"></canvas>
     <p class="game-sub">段ボールを運んで倉庫を片付けるパズル（全5ステージ）</p>
     <button id="btn-start">▶ スタート</button>
     <div id="stage-btns"></div>
@@ -304,21 +303,29 @@ ctx.imageSmoothingEnabled = false;
 const liftImgs = [], boxImgs = [];
 let loaded = 0;
 const totalImgs = SPRITES.forklift.length + SPRITES.box.length;
-function onLoad() { if (++loaded === totalImgs) requestAnimationFrame(loop); }
+function onLoad() { if (++loaded === totalImgs) { drawTitleVisual(); requestAnimationFrame(loop); } }
 SPRITES.forklift.forEach(u => { const i = new Image(); i.onload = onLoad; i.src = u; liftImgs.push(i); });
 SPRITES.box.forEach(u => { const i = new Image(); i.onload = onLoad; i.src = u; boxImgs.push(i); });
 
-// タイトル画面のフォークリフト立ち絵 (スプライトをそのまま積む)
-(function buildTitleVisual() {
-  const box = document.getElementById("title-visual");
-  SPRITES.forklift.forEach((u, i) => {
-    const img = document.createElement("img");
-    img.src = u;
-    img.alt = "";
-    img.style.bottom = (i * 2) + "px";
-    box.appendChild(img);
-  });
-})();
+// タイトル画面のフォークリフト立ち絵
+// 以前は img を DOM で積んでいたが、比率がゲーム内描画とずれて縦に伸びた
+// 縞模様の塔になり、タイトル文字にも被っていた。
+// ゲーム内 (drawStack) と同じ方式で専用 canvas に描く。
+function drawTitleVisual() {
+  const tc = document.getElementById("title-visual");
+  if (!tc) return;
+  const tctx = tc.getContext("2d");
+  tctx.imageSmoothingEnabled = false;
+  tctx.clearRect(0, 0, tc.width, tc.height);
+  for (let i = 0; i < liftImgs.length; i++) {
+    const img = liftImgs[i];
+    tctx.save();
+    tctx.translate(tc.width / 2, 128 - i * SCALE);
+    tctx.scale(SCALE, SCALE);
+    tctx.drawImage(img, -img.width / 2, -img.height / 2);
+    tctx.restore();
+  }
+}
 // 自己ベストランク (ブラウザに保存され、タイトル画面に表示される)
 const RANK_ORDER = { S: 3, A: 2, B: 1 };
 function rankColor(r) { return r === "S" ? "#ffd94d" : r === "A" ? "#a8e6b0" : "#e0a878"; }
@@ -403,6 +410,8 @@ function goTitle() {
   screen = "title";
   document.getElementById("title-screen").style.display = "flex";
   document.getElementById("clear").style.display = "none";
+  document.getElementById("stage-label").textContent = "";
+  document.getElementById("moves-label").textContent = "";
 }
 
 function showClear() {
